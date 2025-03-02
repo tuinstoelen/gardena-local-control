@@ -21,7 +21,7 @@ There are two methods of installation:
 
 ## Installation option 1 - run script on gardena gateway.
 
-1. Connect to the UART of the gateway and log in. Enable remote SSH access and make sure you have access, by adding your public SSH key to the gateway's /home.root/.ssh/authorized_keys file. See the FAQ [How do I root my Gardena Smart Gateway and prepare it for using the script] for details. 
+1. Connect to the UART of the gateway and log in. Enable remote SSH access and make sure you have access, by adding your public SSH key to the gateway's /root/.ssh/authorized_keys file. See the FAQ [How do I root my Gardena Smart Gateway and prepare it for using the script] for details. 
 
 2. Python3 and most prerequisites are already present on the gateway, only the paho-mqtt is missing. So we need to install that. So we first need to install pip, the python 
    package manager.
@@ -90,7 +90,7 @@ There are two methods of installation:
 9. Ensure our work is not erased on software upgrade:
 
         echo "/opt" >> /etc/sysupgrade.conf
-        echo "/home/root/.ssh/authorized_keys" >> /etc/sysupgrade.conf
+        echo "/root/.ssh/authorized_keys" >> /etc/sysupgrade.conf
         echo "/usr/lib/python3.11/site-packages" >> /etc/sysupgrade.conf
         echo "/etc/systemd/system/gardenalocalcontrol.service" >> /etc/sysupgrade.conf
         echo "/etc/systemd/system/multi-user.target.wants/gardenalocalcontrol.service" >> /etc/sysupgrade.conf
@@ -331,11 +331,11 @@ BE AWARE YOU WILL LOSING WARRANTY! ANY MODIFICATIONS WILL BE DONE AT YOUR OWN RI
 6.  You have successful gained root access
 7.  Put in your public SSH key using copy and paste:
 
-        root@gardena:~# echo "<YOUR-PUBLIC-KEY>" >> /home/root/.ssh/authorized_keys
+        root@gardena:~# echo "<YOUR-PUBLIC-KEY>" >> /root/.ssh/authorized_keys
 
 8.  Prevent deletion of the key in case of a firmware upgrade by adding the authorized_keys to the exclude file:
 
-        echo "/home/root/.ssh/authorized_keys" >> /etc/sysupgrade.conf
+        echo "/root/.ssh/authorized_keys" >> /etc/sysupgrade.conf
 
 9. Enable SSH and reload the firewall:
 
@@ -376,6 +376,7 @@ flag the gateway prepares the local access to the lemonbeatd communication. You 
     It's recommended to add the following files/paths to this file:
 
         /opt
+        /root/.ssh/authorized_keys
         /home/root/.ssh/authorized_keys
         /usr/lib/python3.11/site-packages
 
