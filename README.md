@@ -10,21 +10,37 @@ This small script is for simple communication between the Gardena Smart Garden G
 
 Note that this piece of software is currently in an early state. We wanted to push anything as soon as possible to share it to all of you. Take care with us 💚
 
+## Note March 2025: 
+
+During recomissioning of my Gardena gateway and equipment, after winter storage, the local control did not work anymore. Probably due to a system update. After reconnecting the UART and examining the system, it turns out that root's homedir was moved from /home/root to /root and that python was upgraded from 3.11 to 3.12, so we use a different site-packages folder now. 
+
+Fixing it (for me!) entailed:
+ - re-adding my SSH public key to the new /root/.ssh/authorized_keys 
+ - moving the gardena-local-control folder to the new /root/ home dir
+ - Moving the paho python packages (paho*) to the new /usr/lib/python3.12/site-packages/ folder
+ - adjusting the /etc/systemd/system/gardenalocalcontrol.service file to point to the new location of the script in /root 
+ - adjusting the /etc/sysupgrade.conf file to exclude our new locations
+I've adjusted the installation guide here to reflect the changes but they are untested.
+
 ## Installation
 
 There are two methods of installation:
 
 1. Install the python script onto the gardena gateway, and have it communicate directly with MQTT on a remote computer.
+1a - Install with use of PIP
+1b - install without use of PIP
 
-2. Forward the LemonBeat communications to a remote host via socat, and run the python script there. This option has the advantage that you make minimal
+3. Forward the LemonBeat communications to a remote host via socat, and run the python script there. This option has the advantage that you make minimal
    changes to the gardena gateway, and you are less constrained with regards to CPU power, memory and storage, which are all very tight on the gardena gateway.
 
 ## Installation option 1 - run script on gardena gateway.
 
 1. Connect to the UART of the gateway and log in. Enable remote SSH access and make sure you have access, by adding your public SSH key to the gateway's /root/.ssh/authorized_keys file. See the FAQ [How do I root my Gardena Smart Gateway and prepare it for using the script] for details. 
 
-2. Python3 and most prerequisites are already present on the gateway, only the paho-mqtt is missing. So we need to install that. So we first need to install pip, the python 
-   package manager.
+2. Python3 and most prerequisites are already present on the gateway, only the paho-mqtt is missing. So we need to install that.
+   We might be able to just unzip the wheel .whl package into /usr/lib/python3.12/site-packages/ but this is the proper route:
+   
+  So we first need to install pip, the python package manager.
    
    We just have enough free space to do this, but it barely fits.
    
@@ -42,13 +58,11 @@ There are two methods of installation:
 	Filesystem                Size      Used Available Use% Mounted on
 	ubi0:overlay             26.0M     21.8M      2.8M  88% /media/rfs/rw
    
-    Almost out of space... 
+    Almost out of space... Install paho-mqtt:
 
-3. Install paho-mqtt:
+	root@gardena:~# pip3 install paho-mqtt
 
-        root@gardena:~# pip3 install paho-mqtt
-
-4. Download the scripts from github, and adjust the configuration:
+6. Download the scripts from github, and adjust the configuration:
 
         root@gardena:~# wget https://github.com/andrexp/gardena-local-control/archive/refs/tags/2.0.0.1.tar.gz
         root@gardena:~# tar tar -xvf 2.0.0.1.tar.gz
@@ -57,7 +71,7 @@ There are two methods of installation:
 
     Adjust MQTT_BROKER_IP, MQTT_BROKER_PORT, MQTT_AUTHENTICATION, MQTT_BROKER_USER and MQTT_BROKER_PASSWORD to fit your configuration.
 
-5. Test to see if everything works.
+7. Test to see if everything works.
 
     First, on the MQTT server, in my case a raspberry pi, start monitoring the GardenaLocalControl topic:
 
@@ -78,24 +92,24 @@ There are two methods of installation:
 
     If all is working, hit control-C to stop the script. Time to install.
 
-6. Install your favourite flavour, I recommend install_service:
+8. Install your favourite flavour, I recommend install_service:
 
         root@gardena:~# chmod 755 install_service
         root@gardena:~# ./install_service
 
     The service is started at the end of the install script. You should see it come back online in MQTT.
 
-7. Reboot the gateway to make sure the service starts up on boot.
+9. Reboot the gateway to make sure the service starts up on boot.
 
-9. Ensure our work is not erased on software upgrade:
+10. Ensure our work is not erased on software upgrade:
 
         echo "/opt" >> /etc/sysupgrade.conf
         echo "/root/.ssh/authorized_keys" >> /etc/sysupgrade.conf
-        echo "/usr/lib/python3.11/site-packages" >> /etc/sysupgrade.conf
+        echo "/usr/lib/python3.12/site-packages" >> /etc/sysupgrade.conf
         echo "/etc/systemd/system/gardenalocalcontrol.service" >> /etc/sysupgrade.conf
         echo "/etc/systemd/system/multi-user.target.wants/gardenalocalcontrol.service" >> /etc/sysupgrade.conf
 
-10. Cleanup - remove the pip package manager:
+11. Cleanup - remove the pip package manager:
 
         root@gardena:~# opkg remove --autoremove python3-pip
 
@@ -104,6 +118,14 @@ There are two methods of installation:
         ubi0:overlay             26.0M     10.7M     13.9M  43% /media/rfs/rw
 
     Okay, we managed to reclaim some space but we are still out 8 mb to install a 40 kb package... Perhaps a manual install is more prudent next time. But this will require adjustment of the install shell script to skip the dependency check.
+
+## Mmanual install, no use of pip
+
+Note: This is untested! Not sure if this works! Download the paho-mqtt wheel package from here: https://pypi.org/project/paho-mqtt/
+
+	wget https://files.pythonhosted.org/packages/c4/cb/00451c3cf31790287768bb12c6bec834f5d292eaf3022afc88e14b8afc94/paho_mqtt-2.1.0-py3-none-any.whl
+	
+Manually extract this zip archive into /usr/lib/python3.12/site-packages/. It will add two folders called paho and paho_mqtt-2.1.0.dist-info.
 
 ## Installation option 2 - forward LemonBeat comms to remote machine and run script there.
 
@@ -378,7 +400,7 @@ flag the gateway prepares the local access to the lemonbeatd communication. You 
         /opt
         /root/.ssh/authorized_keys
         /home/root/.ssh/authorized_keys
-        /usr/lib/python3.11/site-packages
+        /usr/lib/python3.12/site-packages
 
     If you have installed gardena-local-control as a service add the following additionally:
 
