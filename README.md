@@ -1,5 +1,15 @@
 # GardenaLocalControl
 
+## Note April 2026: 
+
+During recomissioning of my Gardena gateway and equipment, after winter storage, the local control did not work anymore (just like last year :)). 
+
+While researching the issue I noticed that Gardena is working on an official API (and a HA plugin) which is expected to be released soon. Great news! Resources are located here:
+ - https://github.com/cloudless-garden - especially the gardena-smart-local-api repo.
+
+Discussion here:
+- https://github.com/andrexp/gardena-local-control/issues/25#issuecomment-410049196
+
 ## Leading words
 
 First, the explained method including installing the script or parts of software in this repository comes with some modification instructions for your Gardena components. Be warned with the all-known words at first: 
